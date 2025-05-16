@@ -1,0 +1,204 @@
+﻿@model IEnumerable<WebApplication1.Models.BudgetDeposit>
+
+@{
+    ViewData["Title"] = "Budget";
+}
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center" style="max-width: 360px;">
+        <div class="modal-content text-center text-white p-4" style="
+            border-radius: 15px;
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/014/468/621/small/abstract-digital-technology-background-with-concept-security-vector.jpg');
+            background-size: cover;
+            background-position: center;
+        ">
+            <div style="background-color: rgba(0, 0, 0, 0.6); padding: 5px; border-radius: 15px;">
+                <img src="~/images/checked.png" alt="Success" class="mx-auto mb-3" style="max-width: 100px;" />
+
+                <h3 class="text-success fw-bold mb-3">Success !!</h3>
+
+                <p id="successMessage" class="mb-3 small"></p>
+
+                <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Ok</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center" style="max-width: 360px;">
+        <div class="modal-content text-center text-white p-4" style="
+            border-radius: 15px;
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/014/468/621/small/abstract-digital-technology-background-with-concept-security-vector.jpg');
+            background-size: cover;
+            background-position: center;
+        ">
+            <div style="background-color: rgba(0, 0, 0, 0.6); padding: 5px; border-radius: 15px;">
+                <img src="~/images/remove.png" alt="Success" class="mx-auto mb-3" style="max-width: 100px;" />
+
+                <h3 class="text-success fw-bold mb-3">Failed !!</h3>
+
+                <p id="errorMessage" class="mb-3 small"></p>
+
+                <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Ok</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successMessage = '@TempData["SuccessMessage"]';
+            document.getElementById("successMessage").innerText = successMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('successModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var errorMessage = '@TempData["ErrorMessage"]';
+            document.getElementById("errorMessage").innerText = errorMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('errorModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://t4.ftcdn.net/jpg/01/88/15/23/360_F_188152330_XtCsjhMjxHh7lbP1QHO6pAwouhI7ldT9.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .budget-list-container {
+        width: 100%;
+        max-width: 900px;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.1); /* translucent */
+        border-radius: 16px;
+        backdrop-filter: blur(10px); /* blur effect */
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .budget-table-responsive {
+        overflow-x: auto;
+    }
+
+    .budget-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #1f1f1f;
+        font-size: 1rem;
+        font-weight: bold; /* Make entire table text bold */
+        /* text-shadow: 0 0 1px #fff, 0 0 2px #ccc; */
+    }
+
+        .budget-table th,
+        .budget-table td {
+            padding: 12px 20px;
+            /* text-align: left; */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .budget-table th {
+            background: rgba(255, 255, 255, 0.15);
+            font-weight: bold;
+            color: #000 !important;
+        }
+
+        .budget-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+
+    .budget-table-actions a {
+        color: #ff5252;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .budget-table-actions a:hover {
+            text-decoration: underline;
+        }
+
+    .modal-dialog {
+        margin: auto;
+    }
+
+</style>
+<h1 class="budget-page-title">Deposit Amount🤑</h1>
+<hr />
+<p class="budget-actions">
+    <a asp-action="BudgetCreate" class="btn text-white" style="background-color: #4CAF50;">
+        <i class="fas fa-plus me-2"></i> Create New
+    </a>
+</p>
+<hr />
+<div class="budget-list-container">
+    <div class="budget-table-responsive">
+        <table class="budget-table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.DepositAmount)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.DepositedBy)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.DepositDate)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td data-label="@Html.DisplayNameFor(model => item.DepositAmount)">
+                            @Html.DisplayFor(modelItem => item.DepositAmount)
+                        </td>
+                        <td data-label="@Html.DisplayNameFor(model => item.DepositedBy)">
+                            @Html.DisplayFor(modelItem => item.DepositedBy)
+                        </td>
+                        <td data-label="@Html.DisplayNameFor(model => item.DepositDate)">
+                            @Html.DisplayFor(modelItem => item.DepositDate)
+                        </td>
+                        <td class="budget-table-actions">
+                            <a asp-action="BudgetDelete" asp-route-id="@item.Id">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

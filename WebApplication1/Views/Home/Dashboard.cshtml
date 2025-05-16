@@ -1,0 +1,549 @@
+﻿@model DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://erepublic.brightspotcdn.com/dims4/default/9c68c0f/2147483647/strip/true/crop/9932x5179+0+0/resize/840x438!/quality/90/?url=http%3A%2F%2Ferepublic-brightspot.s3.us-west-2.amazonaws.com%2F1b%2F67%2Fb4dd70954751a7c1ae5c6a3bca88%2Fshutterstock-1059563834.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .budget-overview-container {
+        background: var(--glass-color);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        overflow: hidden;
+        padding: 2rem;
+    }
+
+    .col-md-4 {
+        background: var(--glass-color);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        overflow: hidden;
+        padding: 2rem;
+    }
+
+    .summary-card{
+        /* From https://css.glass */
+        background: rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(14.7px);
+        -webkit-backdrop-filter: blur(14.7px);
+        border: 1px solid rgba(255, 255, 255, 0.99);
+    }
+
+    .usage-list-container{
+        background: var(--glass-color);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        overflow: hidden;
+        padding: 2rem;
+    }
+
+    .form-label{
+        color: white;
+        text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    }
+
+    .text-des{
+        color: deepskyblue;
+        text-shadow: 0 0 4px #fff, 0 0 8px #fff;
+    }
+
+    .modal-dialog {
+        margin: auto;
+    }
+
+    .custom-outline {
+        color: #ffffff; /* White text */
+        border-color: #ffffff; /* White border */
+    }
+
+        .custom-outline:hover {
+            background-color: #ffffff;
+            color: #000000; /* Black text on hover */
+        }
+
+    /* .progress-circle { */
+    /*     position: relative; */
+    /*     margin: 0 auto; */
+    /* } */
+
+    /* .progress-circle-svg { */
+    /*     display: block; */
+    /* } */
+
+    /* .progress-circle-text { */
+    /*     position: absolute; */
+    /*     top: 50%; */
+    /*     left: 50%; */
+    /*     transform: translate(-50%, -50%); */
+    /*     font-size: 1.5rem; */
+    /*     font-weight: bold; */
+    /* } */
+
+    /* .progress-circle-bg { */
+    /*     stroke: green; */
+    /* } */
+
+    /* .progress-circle-fill { */
+    /*     stroke: red; */
+    /*     transition: stroke-dasharray 0.6s ease; */
+    /* } */
+
+
+</style>
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center" style="max-width: 360px;">
+        <div class="modal-content text-center text-white p-4" style="
+            border-radius: 15px;
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/014/468/621/small/abstract-digital-technology-background-with-concept-security-vector.jpg');
+            background-size: cover;
+            background-position: center;
+        ">
+            <div style="background-color: rgba(0, 0, 0, 0.6); padding: 5px; border-radius: 15px;">
+                <img src="~/images/access-granted.png" alt="Success" class="mx-auto mb-3" style="max-width: 100px;" />
+
+                <h3 class="text-success fw-bold mb-3">Login Successful !!</h3>
+
+                <p id="successMessage" class="mb-3 small"></p>
+
+                <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Ok</button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered d-flex justify-content-center" style="max-width: 360px;">
+        <div class="modal-content text-center text-white p-4" style="
+            border-radius: 15px;
+            background-image: url('https://static.vecteezy.com/system/resources/thumbnails/014/468/621/small/abstract-digital-technology-background-with-concept-security-vector.jpg');
+            background-size: cover;
+            background-position: center;
+        ">
+            <div style="background-color: rgba(0, 0, 0, 0.6); padding: 5px; border-radius: 15px;">
+                <img src="~/images/remove.png" alt="Success" class="mx-auto mb-3" style="max-width: 100px;" />
+
+                <h3 class="text-success fw-bold mb-3">Login Failed !!</h3>
+
+                <p id="errorMessage" class="mb-3 small"></p>
+
+                <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Ok</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successMessage = @Html.Raw(Json.Serialize(TempData["SuccessMessage"]));
+            document.getElementById("successMessage").innerText = successMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('successModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successMessage = @Html.Raw(Json.Serialize(TempData["ErrorMessage"]));
+            document.getElementById("errorMessage").innerText = errorMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('errorModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+
+
+
+<div class="date-filter-container mb-4">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="date" class="form-control" id="startDate" name="startDate" 
+                   value="@Model.StartDate.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-4">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="date" class="form-control" id="endDate" name="endDate" 
+                   value="@Model.EndDate.ToString("yyyy-MM-dd")">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+            <a href="@Url.Action("Dashboard")" class="btn btn-secondary ms-2">Reset</a>
+        </div>
+    </form>
+    <div class="mt-2">
+        <small class="text-light fs-6">Showing data from @Model.StartDate.ToShortDateString() to @Model.EndDate.ToShortDateString()</small>
+    </div>
+
+</div>
+<div>
+    <div class="budget-overview-container">
+        <h3>💰 Budget Overview</h3>
+        @{
+            var totalBudget1 = Model.BudgetDeposits.Sum(d => d.DepositAmount);
+            var amountUsed1 = Model.BudgetUsages.Sum(u => u.AmountUsed);
+            var remainingBudget1 = totalBudget1 - amountUsed1;
+            double usedPercentage1 = totalBudget1 > 0 ? (double)((decimal)amountUsed1 / (decimal)totalBudget1) * 100 : 0;
+            double remainingPercentage1 = 100 - usedPercentage1;
+
+            string budgetMessage = "";
+            string alertClass = "info";
+
+            if (remainingBudget1 < 0)
+            {
+                budgetMessage = "💸 Bhai khtam ho gaya! Budget se zyada kharcha ho gaya!";
+                alertClass = "danger";
+            }
+            else if (remainingPercentage1 < 20)
+            {
+                budgetMessage = "🛑 Bhai khtam ho raha hai! Sambhal ke!";
+                alertClass = "warning";
+            }
+            else if (remainingPercentage1 < 30)
+            {
+                budgetMessage = "💼 Deposit kar do! Budget thoda kam hai.";
+                alertClass = "warning";
+            }
+            else if (remainingPercentage1 < 60)
+            {
+                budgetMessage = "⚠️ Kharacha kam karo! 🔽";
+                alertClass = "secondary";
+            }
+            else if (remainingPercentage1 < 80)
+            {
+                budgetMessage = "📊 Budget balance thik hai!";
+                alertClass = "primary";
+            }
+            else
+            {
+                budgetMessage = "🟢 Aur bhai.. Bhaut paisa💸 hai apun k pass!! Relax 😎";
+                alertClass = "success";
+            }
+        }
+        <div class="alert alert-@alertClass mt-3">
+            <strong>@budgetMessage</strong>
+        </div>
+    </div>
+    @* <div class="budget-overview-container mt-4"> *@
+    @*     @{ *@
+    @*         var totalBudget = Model.BudgetDeposits.Sum(d => d.DepositAmount); *@
+    @*         var amountUsed = Model.BudgetUsages.Sum(u => u.AmountUsed); *@
+    @*         var remainingBudget = totalBudget - amountUsed; *@
+    @*         double usedPercentage = totalBudget > 0 ? (double)((decimal)amountUsed / (decimal)totalBudget) * 100 : 0; *@
+    @*         double remainingPercentage = 100 - usedPercentage; *@
+    @*     } *@
+    @*     <div class="d-flex justify-content-between mb-1"> *@
+    @*         <span>🔴 Used</span> *@
+    @*         <span>🟢 Remaining</span> *@
+    @*     </div> *@
+    @*     <div class="bar-chart-container d-flex w-100 border rounded overflow-hidden" style="height: 30px;"> *@
+    @*         <div class="bar-segment used" style="width: @usedPercentage%; line-height: 30px;"> *@
+    @*             @usedPercentage.ToString("0")% *@
+    @*         </div> *@
+    @*         <div class="bar-segment remaining bg-success text-white text-center" style="width: @remainingPercentage%; line-height: 30px;"> *@
+    @*             @remainingPercentage.ToString("0")% *@
+    @*         </div> *@
+    @*     </div> *@
+    @* </div> *@
+
+    <div class="budget-overview-container text-center">
+        @{
+            var totalBudget = Model.BudgetDeposits.Sum(d => d.DepositAmount);
+            var amountUsed = Model.BudgetUsages.Sum(u => u.AmountUsed);
+            var remainingBudget = totalBudget - amountUsed;
+            double usedPercentage = totalBudget > 0 ? (double)((decimal)amountUsed / (decimal)totalBudget) * 100 : 0;
+            string formattedPercentage = usedPercentage.ToString("0.00"); // Show exactly 2 decimal places
+        }
+
+        <div class="circle-progress" style="--percentage: @usedPercentage">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+                <path class="circle-bg"
+                      d="M18 2.0845
+                   a 15.9155 15.9155 0 0 1 0 31.831
+                   a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="#eee"
+                      stroke-width="3" />
+                <path class="circle-fill"
+                      d="M18 2.0845
+                   a 15.9155 15.9155 0 0 1 0 31.831
+                   a 15.9155 15.9155 0 0 1 0 -31.831"
+                      fill="none"
+                      stroke="#4CAF50"
+                      stroke-width="3"
+                      stroke-dasharray="0, 100" />
+            </svg>
+            <div class="percentage-text">0.00%</div>
+        </div>
+
+        @* <div class="budget-labels"> *@
+        @*     <div class="budget-row"> *@
+        @*         <span class="label">Used:</span> *@
+        @*         <span class="value">@amountUsed.ToString("N2")</span> *@
+        @*     </div> *@
+        @*     <div class="budget-row"> *@
+        @*         <span class="label">Remaining:</span> *@
+        @*         <span class="value">@remainingBudget.ToString("N2")</span> *@
+        @*     </div> *@
+        @* </div> *@
+    </div>
+
+    <style>
+        .circle-progress {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+
+        .circular-chart {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle-bg {
+            stroke: #4CAF50;
+        }
+
+        .circle-fill {
+            stroke: red;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1.5s ease-in-out;
+        }
+
+        .percentage-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            /* Outline using multiple shadows */
+            text-shadow: -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black, 1px 1px 2px black;
+        }
+
+
+        .budget-labels {
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .budget-row {
+            margin-bottom: 5px;
+        }
+
+        .label {
+            display: inline-block;
+            width: 80px;
+            text-align: right;
+            padding-right: 10px;
+            color: #666;
+        }
+
+        .value {
+            display: inline-block;
+            width: 80px;
+            text-align: left;
+            font-weight: bold;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressCircle = document.querySelector('.circle-progress');
+            const circleFill = document.querySelector('.circle-fill');
+            const percentageText = document.querySelector('.percentage-text');
+            const targetPercentage = @usedPercentage;
+            const formattedTarget = targetPercentage.toFixed(2); // Ensure 2 decimal places
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Animate the circle
+                        circleFill.style.strokeDasharray = `${targetPercentage}, 100`;
+
+                        // Animate the percentage counter
+                        let current = 0;
+                        const duration = 1500;
+                        const start = Date.now();
+
+                        const animateCounter = () => {
+                            const elapsed = Date.now() - start;
+                            const progress = Math.min(elapsed / duration, 1);
+                            current = progress * targetPercentage;
+                            percentageText.textContent = current.toFixed(2) + '%'; // Always show 2 decimal places
+
+                            if (progress < 1) {
+                                requestAnimationFrame(animateCounter);
+                            } else {
+                                percentageText.textContent = formattedTarget + '%';
+                            }
+                        };
+
+                        animateCounter();
+                        observer.unobserve(progressCircle);
+                    }
+                });
+            }, {
+                threshold: 0.5
+            });
+
+            observer.observe(progressCircle);
+        });
+    </script>
+
+
+    <div class="row text-center mt-4">
+        <div class="col-md-4">
+            <div class="summary-card">
+                <h4>💵 Total Amount Deposited</h4>
+                <p class="h5 text-success">₹@totalBudget1</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class ="summary-card">
+                <h4>💸 Total Amount Used</h4>
+                <p class="h5 text-danger">₹@amountUsed1 (@usedPercentage1.ToString("0.##")%)</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="summary-card">
+                <h4>🟢 Total Amount Remaining</h4>
+                <p class="h5 text-primary">₹@remainingBudget1 (@remainingPercentage1.ToString("0.##")%)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="usage-list-container mt-5">
+        <h3>📜 Usage History</h3>
+
+        <input type="text" id="usageSearch" class="form-control mb-3" placeholder="🔍 Search by date, description, or amount..." oninput="filterUsageTable()" />
+
+        @if (Model.BudgetUsages != null && Model.BudgetUsages.Any())
+        {
+            <div class="table-responsive">
+                <table class="usage-table" id="usageTable">
+                    <thead>
+                        <tr>
+                            <th>📅 Date Used</th>
+                            <th>📝 Description</th>
+                            <th>💰 Amount Used</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var usage in Model.BudgetUsages.OrderByDescending(u => u.DateUsed))
+                        {
+                            <tr>
+                                <td>@usage.DateUsed.ToShortDateString()</td>
+                                <td>@usage.UsageDescription</td>
+                                <td>₹@usage.AmountUsed</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <p class="no-data text-muted">🚫 No usage history available.</p>
+        }
+    </div>
+</div>
+
+<script>
+    // Initialize date pickers with some default ranges
+    document.addEventListener('DOMContentLoaded', function() {
+        // Quick filter buttons
+        const dateFilterHtml = `
+                <div class="btn-group btn-group-sm mt-2">
+                    <button type="button" class="btn custom-outline quick-filter" data-days="7">Last 7 Days</button>
+                    <button type="button" class="btn custom-outline quick-filter" data-days="30">Last 30 Days</button>
+                    <button type="button" class="btn custom-outline quick-filter" data-days="90">Last 90 Days</button>
+                    <button type="button" class="btn custom-outline quick-filter" data-month="current">This Month</button>
+                </div>`;
+
+        document.querySelector('.date-filter-container').insertAdjacentHTML('beforeend', dateFilterHtml);
+
+        // Quick filter button handlers
+        document.querySelectorAll('.quick-filter').forEach(button => {
+            button.addEventListener('click', function() {
+                const days = this.getAttribute('data-days');
+                const month = this.getAttribute('data-month');
+                const endDate = new Date();
+                let startDate = new Date();
+
+                if (days) {
+                    startDate.setDate(startDate.getDate() - parseInt(days));
+                } else if (month === 'current') {
+                    startDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+                }
+
+                document.getElementById('startDate').valueAsDate = startDate;
+                document.getElementById('endDate').valueAsDate = endDate;
+
+                // Submit the form
+                this.closest('form').submit();
+            });
+        });
+    });
+
+    function filterUsageTable() {
+        // Your existing filter function remains the same
+        const input = document.getElementById("usageSearch").value.toLowerCase();
+        const rows = document.querySelectorAll("#usageTable tbody tr");
+
+        rows.forEach(row => {
+            const date = row.cells[0].textContent.toLowerCase();
+            const description = row.cells[1].textContent.toLowerCase();
+            const amount = row.cells[2].textContent.toLowerCase();
+
+            row.style.display = (date.includes(input) || description.includes(input) || amount.includes(input)) ? "" : "none";
+        });
+    }
+</script>
+
+@* <script src="~/lib/jquery/dist/jquery.min.js"></script> *@
+@* <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script> *@

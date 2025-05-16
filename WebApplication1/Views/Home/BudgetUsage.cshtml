@@ -1,0 +1,228 @@
+﻿@model IEnumerable<WebApplication1.Models.BudgetUsage>
+
+@{
+    ViewData["Title"] = "Budget Usage";
+}
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="successModalLabel">Success</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="successMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorMessage"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var successMessage = '@TempData["SuccessMessage"]';
+            document.getElementById("successMessage").innerText = successMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('successModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var errorMessage = '@TempData["ErrorMessage"]';
+            document.getElementById("errorMessage").innerText = errorMessage;
+
+            var myModal = new bootstrap.Modal(document.getElementById('errorModal'), {
+                keyboard: false
+            });
+            myModal.show();
+        });
+    </script>
+}
+
+
+@* <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script> *@
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://www.shutterstock.com/image-illustration/stock-market-investment-trading-graph-600nw-2448343179.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    .budget-list-container {
+        width: 100%;
+        max-width: 900px;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.1); /* translucent */
+        border-radius: 16px;
+        backdrop-filter: blur(10px); /* blur effect */
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .budget-table-responsive {
+        overflow-x: auto;
+    }
+
+    .budget-table {
+        width: 100%;
+        border-collapse: collapse;
+        color: #1f1f1f;
+        font-size: 1rem;
+        font-weight: bold; /* Make entire table text bold */
+        /* text-shadow: 0 0 1px #fff, 0 0 2px #ccc; */
+    }
+
+        .budget-table th,
+        .budget-table td {
+            padding: 12px 20px;
+            /* text-align: left; */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .budget-table th {
+            background: rgba(255, 255, 255, 0.15);
+            font-weight: bold;
+            color: #000 !important;
+        }
+
+        .budget-table tr:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+
+    .budget-table-actions a {
+        color: #ff5252;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .budget-table-actions a:hover {
+            text-decoration: underline;
+        }
+
+</style>
+
+<h1 class="budget-page-title">Apna Kharcha🙂</h1>
+<hr />
+<p class="budget-actions">
+    <a asp-action="BudgetUsageCreate" class="btn text-white" style="background-color: #4CAF50;">
+        <i class="fas fa-plus me-2"></i> Create New
+    </a>
+</p>
+<div class="budget-list-container">
+    <h3>Filter by Date</h3>
+
+    <div class="form-group mb-2">
+        <label>From Date:</label>
+        <input type="date" id="fromDate" class="form-control" onchange="filterByDate()" />
+    </div>
+    <div class="form-group mb-2">
+        <label>To Date:</label>
+        <input type="date" id="toDate" class="form-control" onchange="filterByDate()" />
+    </div>
+    <hr />
+    <div class="form-group mb-3">
+        <button class="btn btn-secondary" onclick="clearDateFilter()">Clear Filter</button>
+    </div>
+    <hr />
+ 
+    <div class="budget-table-responsive">
+        <table class="budget-table" id="budgetTable">
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.AmountUsed)</th>
+                    <th>@Html.DisplayNameFor(model => model.DateUsed)</th>
+                    <th>@Html.DisplayNameFor(model => model.UsageDescription)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td data-label="@Html.DisplayNameFor(model => item.AmountUsed)">
+                            @Html.DisplayFor(modelItem => item.AmountUsed)
+                        </td>
+                        <td data-label="@Html.DisplayNameFor(model => item.DateUsed)">
+                            @item.DateUsed.ToString("yyyy-MM-dd")
+                        </td>
+                        <td data-label="@Html.DisplayNameFor(model => item.UsageDescription)">
+                            @Html.DisplayFor(modelItem => item.UsageDescription)
+                        </td>
+                        <td class="budget-table-actions">
+                            <a asp-action="BudgetUsageDelete" asp-route-id="@item.Id">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filterByDate() {
+        const fromDate = document.getElementById("fromDate").value;
+        const toDate = document.getElementById("toDate").value;
+        const rows = document.querySelectorAll("#budgetTable tbody tr");
+
+        rows.forEach(row => {
+            const dateText = row.cells[1].textContent.trim(); // Assumes DateUsed is in 2nd column
+            const rowDate = new Date(dateText);
+
+            const from = fromDate ? new Date(fromDate) : null;
+            const to = toDate ? new Date(toDate) : null;
+
+            let show = true;
+            if (from && rowDate < from) show = false;
+            if (to && rowDate > to) show = false;
+
+            row.style.display = show ? "" : "none";
+        });
+    }
+
+    function clearDateFilter() {
+        document.getElementById("fromDate").value = "";
+        document.getElementById("toDate").value = "";
+        filterByDate(); // Show all rows again
+    }
+</script>
+

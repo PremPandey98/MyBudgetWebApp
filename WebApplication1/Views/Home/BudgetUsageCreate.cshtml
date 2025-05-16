@@ -1,0 +1,77 @@
+﻿@model WebApplication1.Models.BudgetUsage
+
+@{
+    ViewData["Title"] = "BudgetUsageCreate";
+}
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WebApplication1</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/budget-dark-base.css" />
+    <link rel="stylesheet" href="~/css/budget-create.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('https://www.shutterstock.com/image-illustration/stock-market-investment-trading-graph-600nw-2448343179.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<div class="budget-create-container">
+    <h1 class="budget-create-title">Kharcha 😁</h1>
+
+    <h4>Add Expense</h4>
+    <hr class="budget-divider" />
+    <div class="row">
+        <div class="col-md-12">
+
+            <form asp-action="BudgetUsageCreate">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="AmountUsed" class="control-label"></label>
+                    <input asp-for="AmountUsed" class="form-control" />
+                    <span asp-validation-for="AmountUsed" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="UsageDescription" class="control-label"></label>
+                    <input asp-for="UsageDescription" class="form-control"  />
+                    <span asp-validation-for="UsageDescription" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    @{
+                        var istTimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                        var istNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istTimeZone);
+                        var istDateTimeFormatted = istNow.ToString("yyyy-MM-ddTHH:mm");
+                    }
+
+                    <label asp-for="DateUsed" class="control-label"></label> 
+                    <input asp-for="DateUsed" class="form-control"
+                           value="@istDateTimeFormatted"
+                           type="datetime-local" />
+                    <span asp-validation-for="DateUsed" class="text-danger"></span>
+                </div>
+                <hr />
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+    <br />
+    <div>
+        <a asp-action="BudgetUsage" class="btn btn-success">Back to List</a>
+    </div>
+</div>
+

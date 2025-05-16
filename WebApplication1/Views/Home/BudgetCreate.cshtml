@@ -1,0 +1,71 @@
+﻿@model WebApplication1.Models.BudgetDeposit
+
+@{
+    ViewData["Title"] = "BudgetCreate";
+}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: white;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://png.pngtree.com/thumb_back/fh260/background/20230714/pngtree-coins-being-deposited-by-hand-exemplifying-saving-money-3d-image-creation-image_3881296.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+</style>
+
+<div class="budget-create-container">
+    <h1 class="budget-create-title">Paisa Dalo😎</h1>
+
+    <h4>Add Deposite Amount</h4>
+    <hr class="budget-divider" />
+    <div class="row">
+        <div class="col-md-12">
+            <form asp-action="BudgetCreate">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="DepositAmount" class="control-label"></label>
+                    <input asp-for="DepositAmount" class="form-control" />
+                    <span asp-validation-for="DepositAmount" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DepositedBy" class="control-label"></label>
+                    <input asp-for="DepositedBy" class="form-control" />
+                    <span asp-validation-for="DepositedBy" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    @{
+                        var istTimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                        var istNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istTimeZone);
+                    }
+
+                    <label asp-for="DepositDate" class="control-label"></label>
+                    <input asp-for="DepositDate" class="form-control" value="@istNow.ToString("yyyy-MM-dd")" type="date" />
+                    <span asp-validation-for="DepositDate" class="text-danger"></span>
+                </div>
+               
+                <hr />
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+    <br />
+    <div class="back-to-list">
+        <a asp-action="Budget" class="btn btn-success">Back to List</a>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

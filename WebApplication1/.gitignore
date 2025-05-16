@@ -1,0 +1,16 @@
+﻿# Ignore Visual Studio files
+.vs/
+*.user
+*.suo
+
+# Ignore build output
+bin/
+obj/
+
+# User secrets
+secrets.json
+appsettings.Development.json
+appsettings.json
+
+# Node & package files (if used)
+node_modules/

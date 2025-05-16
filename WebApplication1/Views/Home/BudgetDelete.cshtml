@@ -1,0 +1,41 @@
+﻿@model WebApplication1.Models.BudgetDeposit
+
+@{
+    ViewData["Title"] = "BudgetDelete";
+}
+
+<h1>Kya hua😒</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Deposit Amount ₹@Html.DisplayFor(model => model.DepositAmount)</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DepositAmount)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DepositAmount)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DepositedBy)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DepositedBy)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DepositDate)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DepositDate)
+        </dd>
+    </dl>
+    
+    <form asp-action="BudgetDelete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <br />
+        <br />
+        <a asp-action="Budget" class="btn btn-success">Back to List</a>
+    </form>
+</div>
