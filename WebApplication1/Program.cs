@@ -1,5 +1,6 @@
 using BudgetMobApp.Services;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 using WebApplication1.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,9 @@ builder.Services.AddAuthentication("MyCookieAuth")
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<SmsService>();
 
+
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,7 +35,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

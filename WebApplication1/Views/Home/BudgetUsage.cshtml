@@ -143,28 +143,49 @@
 
 <h1 class="budget-page-title">Apna Kharcha🙂</h1>
 <hr />
+<p>
+    <button id="filterToggleBtn" class="btn btn-primary">
+        <i class="bi bi-funnel"></i> Show Filters
+    </button>
+<p />
 <p class="budget-actions">
     <a asp-action="BudgetUsageCreate" class="btn text-white" style="background-color: #4CAF50;">
         <i class="fas fa-plus me-2"></i> Create New
     </a>
+    <a asp-action="ExportBudgetUsageToExcel" class="btn text-white" style="background-color: #4CAF50;">
+        Export To Excel
+    </a>
 </p>
-<div class="budget-list-container">
-    <h3>Filter by Date</h3>
+<div>
+    <form method="post" enctype="multipart/form-data" asp-action="ImportBudgetUsage">
+        <div class="form-group">
+            <label style="color:white">Select Excel File</label>
+            <input type="file" name="file" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Import</button>
+    </form>
 
-    <div class="form-group mb-2">
-        <label>From Date:</label>
-        <input type="date" id="fromDate" class="form-control" onchange="filterByDate()" />
+    <a href="~/templates/BudgetUsage_ImportTemplate.xlsx" class="btn btn-info">Download Sample Template</a>
+
+</div>
+<div class="budget-list-container">
+    <div id="filterContainer" style="display: none;">
+        <h3>Filter by Date</h3>
+        <div class="form-group mb-2">
+            <label>From Date:</label>
+            <input type="date" id="fromDate" class="form-control" onchange="filterByDate()" />
+        </div>
+        <div class="form-group mb-2">
+            <label>To Date:</label>
+            <input type="date" id="toDate" class="form-control" onchange="filterByDate()" />
+        </div>
+        <hr />
+        <div class="form-group mb-3">
+            <button class="btn btn-secondary" onclick="clearDateFilter()">Clear Filter</button>
+        </div>
+        <hr />
     </div>
-    <div class="form-group mb-2">
-        <label>To Date:</label>
-        <input type="date" id="toDate" class="form-control" onchange="filterByDate()" />
-    </div>
-    <hr />
-    <div class="form-group mb-3">
-        <button class="btn btn-secondary" onclick="clearDateFilter()">Clear Filter</button>
-    </div>
-    <hr />
- 
+
     <div class="budget-table-responsive">
         <table class="budget-table" id="budgetTable">
             <thead>
@@ -176,29 +197,43 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
-                {
+                    @foreach (var item in Model)
+                    {
                     <tr>
                         <td data-label="@Html.DisplayNameFor(model => item.AmountUsed)">
-                            @Html.DisplayFor(modelItem => item.AmountUsed)
+                                @Html.DisplayFor(modelItem => item.AmountUsed)
                         </td>
                         <td data-label="@Html.DisplayNameFor(model => item.DateUsed)">
-                            @item.DateUsed.ToString("yyyy-MM-dd")
+                                @item.DateUsed.ToString("yyyy-MM-dd")
                         </td>
                         <td data-label="@Html.DisplayNameFor(model => item.UsageDescription)">
-                            @Html.DisplayFor(modelItem => item.UsageDescription)
+                                @Html.DisplayFor(modelItem => item.UsageDescription)
                         </td>
                         <td class="budget-table-actions">
                             <a asp-action="BudgetUsageDelete" asp-route-id="@item.Id">Delete</a>
                         </td>
                     </tr>
-                }
+                    }
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const filterContainer = document.getElementById('filterContainer');
+
+        filterToggleBtn.addEventListener('click', function() {
+            if (filterContainer.style.display === 'none') {
+                filterContainer.style.display = 'block';
+                filterToggleBtn.innerHTML = '<i class="bi bi-funnel"></i> Hide Filters';
+            } else {
+                filterContainer.style.display = 'none';
+                filterToggleBtn.innerHTML = '<i class="bi bi-funnel"></i> Show Filters';
+            }
+        });
+    });
     function filterByDate() {
         const fromDate = document.getElementById("fromDate").value;
         const toDate = document.getElementById("toDate").value;

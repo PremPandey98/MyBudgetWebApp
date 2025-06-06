@@ -43,7 +43,7 @@
         padding: 2rem;
     }
 
-    .summary-card{
+    .summary-card {
         /* From https://css.glass */
         background: rgba(255, 255, 255, 0.14);
         border-radius: 16px;
@@ -53,7 +53,7 @@
         border: 1px solid rgba(255, 255, 255, 0.99);
     }
 
-    .usage-list-container{
+    .usage-list-container {
         background: var(--glass-color);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
@@ -64,12 +64,12 @@
         padding: 2rem;
     }
 
-    .form-label{
+    .form-label {
         color: white;
         text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
     }
 
-    .text-des{
+    .text-des {
         color: deepskyblue;
         text-shadow: 0 0 4px #fff, 0 0 8px #fff;
     }
@@ -134,7 +134,7 @@
 
                 <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Ok</button>
             </div>
-            
+
         </div>
     </div>
 </div>
@@ -194,16 +194,20 @@
 
 
 
-<div class="date-filter-container mb-4">
+<button id="filterToggleBtn" class="btn btn-primary mb-3">
+    <i class="bi bi-funnel"></i> Show Filters
+</button>
+
+<div class="date-filter-container mb-4" style="display: none;" id="filterContainer">
     <form method="get" class="row g-3">
         <div class="col-md-4">
             <label for="startDate" class="form-label">Start Date</label>
-            <input type="date" class="form-control" id="startDate" name="startDate" 
+            <input type="date" class="form-control" id="startDate" name="startDate"
                    value="@Model.StartDate.ToString("yyyy-MM-dd")">
         </div>
         <div class="col-md-4">
             <label for="endDate" class="form-label">End Date</label>
-            <input type="date" class="form-control" id="endDate" name="endDate" 
+            <input type="date" class="form-control" id="endDate" name="endDate"
                    value="@Model.EndDate.ToString("yyyy-MM-dd")">
         </div>
         <div class="col-md-4 d-flex align-items-end">
@@ -214,7 +218,6 @@
     <div class="mt-2">
         <small class="text-light fs-6">Showing data from @Model.StartDate.ToShortDateString() to @Model.EndDate.ToShortDateString()</small>
     </div>
-
 </div>
 <div>
     <div class="budget-overview-container">
@@ -443,7 +446,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class ="summary-card">
+            <div class="summary-card">
                 <h4>💸 Total Amount Used</h4>
                 <p class="h5 text-danger">₹@amountUsed1 (@usedPercentage1.ToString("0.##")%)</p>
             </div>
@@ -497,6 +500,20 @@
     // Initialize date pickers with some default ranges
     document.addEventListener('DOMContentLoaded', function() {
         // Quick filter buttons
+
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const filterContainer = document.getElementById('filterContainer');
+
+
+        filterToggleBtn.addEventListener('click', function() {
+            if (filterContainer.style.display === 'none') {
+                filterContainer.style.display = 'block';
+                filterToggleBtn.innerHTML = '<i class="bi bi-funnel"></i> Hide Filters';
+            } else {
+                filterContainer.style.display = 'none';
+                filterToggleBtn.innerHTML = '<i class="bi bi-funnel"></i> Show Filters';
+            }
+        });
         const dateFilterHtml = `
                 <div class="btn-group btn-group-sm mt-2">
                     <button type="button" class="btn custom-outline quick-filter" data-days="7">Last 7 Days</button>

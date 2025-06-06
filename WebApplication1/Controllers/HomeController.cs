@@ -1,12 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using BudgetMobApp.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml.Style;
+using OfficeOpenXml;
 using WebApplication1.Data;
+using LicenseContext = OfficeOpenXml.LicenseContext;
+using System.Drawing;
 using WebApplication1.Models;
 
-namespace WebApplication1.Controllers;
+namespace BudgetMobApp.Controllers;
 
 [Authorize]
 public class HomeController : Controller
@@ -240,6 +247,236 @@ public class HomeController : Controller
         };
 
         return View(model);
+    }
+
+    public ActionResult ExportBudgetUsageToExcel()
+    {
+
+        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        var BudgetusagesData = _context.BudgetUsages.ToList();
+        var DepositData = _context.BudgetDeposits.ToList();
+
+        using (var package = new ExcelPackage())
+        {
+            var worksheet = package.Workbook.Worksheets.Add("Budget Usage");
+
+            // Get all properties of BudgetUsage using reflection
+            var properties = typeof(BudgetUsage).GetProperties();
+
+            // Add header row dynamically
+            for (int i = 0; i < properties.Length; i++)
+            {
+                worksheet.Cells[1, i + 1].Value = properties[i].Name;
+            }
+
+            // Format header
+            using (var range = worksheet.Cells[1, 1, 1, properties.Length])
+            {
+                range.Style.Font.Bold = true;
+                range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                range.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
+            }
+
+            // Add data rows dynamically
+            for (int row = 0; row < BudgetusagesData.Count; row++)
+            {
+                for (int col = 0; col < properties.Length; col++)
+                {
+                    var value = properties[col].GetValue(BudgetusagesData[row], null);
+                    worksheet.Cells[row + 2, col + 1].Value = value;
+
+                    // Optional: Format specific data types
+                    if (value is DateTime)
+                    {
+                        worksheet.Cells[row + 2, col + 1].Style.Numberformat.Format = "yyyy-mm-dd";
+                    }
+                    else if (value is decimal)
+                    {
+                        worksheet.Cells[row + 2, col + 1].Style.Numberformat.Format = "#,##0.00";
+                    }
+                }
+            }
+
+            int nextStartRow = BudgetusagesData.Count + 4;
+
+
+            var DepositProperties = typeof(BudgetDeposit).GetProperties();
+
+            for (int i = 0; i < DepositProperties.Length; i++)
+            {
+                worksheet.Cells[nextStartRow, i + 1].Value = DepositProperties[i].Name;
+            }
+
+            using (var range = worksheet.Cells[nextStartRow, 1, nextStartRow, DepositProperties.Length])
+            {
+                range.Style.Font.Bold = true;
+                range.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                range.Style.Fill.BackgroundColor.SetColor(Color.LightGreen);
+            }
+
+            for (int row = 0; row < DepositData.Count; row++)
+            {
+                for (int col = 0; col < DepositProperties.Length; col++)
+                {
+                    var value = DepositProperties[col].GetValue(DepositData[row]);
+                    worksheet.Cells[nextStartRow + row + 1, col + 1].Value = value;
+
+                    if (value is DateTime)
+                        worksheet.Cells[nextStartRow + row + 1, col + 1].Style.Numberformat.Format = "yyyy-mm-dd";
+                    else if (value is decimal)
+                        worksheet.Cells[nextStartRow + row + 1, col + 1].Style.Numberformat.Format = "#,##0.00";
+                }
+            }
+
+            // Auto-fit columns
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+            return File(package.GetAsByteArray(),
+                      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                      "BudgetUsage_Export.xlsx");
+        }
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> ImportBudgetUsage(IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select a valid Excel file.";
+                return RedirectToAction("Index");
+            }
+
+            // ✅ Set EPPlus license context (for non-commercial use)
+            OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    var worksheet = package.Workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        TempData["ErrorMessage"] = "No worksheet found in the Excel file.";
+                        return RedirectToAction("Index");
+                    }
+
+                    var allowedProperties = new[] { "AmountUsed", "DateUsed", "UsageDescription" };
+                    var entityProperties = typeof(BudgetUsage).GetProperties()
+                        .Where(p => p.CanWrite && allowedProperties.Contains(p.Name))
+                        .ToList();
+
+                    // Read headers
+                    var excelHeaders = new List<string>();
+                    for (int col = 1; col <= worksheet.Dimension.End.Column; col++)
+                    {
+                        excelHeaders.Add(worksheet.Cells[1, col].Text.Trim());
+                    }
+
+                    // Map headers to properties
+                    var propertyMap = new Dictionary<PropertyInfo, int>();
+                    foreach (var prop in entityProperties)
+                    {
+                        var headerName = prop.Name;
+
+                        var displayAttr = prop.GetCustomAttribute<DisplayNameAttribute>();
+                        if (displayAttr != null)
+                            headerName = displayAttr.DisplayName;
+
+                        var colIndex = excelHeaders.FindIndex(h =>
+                            h.Equals(headerName, StringComparison.OrdinalIgnoreCase));
+
+                        if (colIndex >= 0)
+                            propertyMap.Add(prop, colIndex + 1);
+                    }
+
+                    if (!propertyMap.Any())
+                    {
+                        TempData["ErrorMessage"] = "No matching columns found between Excel and model.";
+                        return RedirectToAction("Index");
+                    }
+
+                    var newRecords = new List<BudgetUsage>();
+                    var errorMessages = new List<string>();
+                    bool hasErrors = false;
+
+                    // Read rows
+                    for (int row = 2; row <= worksheet.Dimension.End.Row; row++)
+                    {
+                        try
+                        {
+                            var record = new BudgetUsage();
+                            bool rowHasValue = false;
+
+                            foreach (var mapping in propertyMap)
+                            {
+                                var prop = mapping.Key;
+                                var col = mapping.Value;
+                                var cellValue = worksheet.Cells[row, col].Text;
+
+                                if (!string.IsNullOrWhiteSpace(cellValue))
+                                {
+                                    rowHasValue = true;
+                                    try
+                                    {
+                                        object value = Convert.ChangeType(
+                                            cellValue,
+                                            Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
+
+                                        prop.SetValue(record, value);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        throw new Exception($"Column '{prop.Name}': {ex.Message}");
+                                    }
+                                }
+                            }
+
+                            if (rowHasValue)
+                            {
+                                var validationResults = new List<ValidationResult>();
+                                if (Validator.TryValidateObject(record, new ValidationContext(record), validationResults, true))
+                                {
+                                    newRecords.Add(record);
+                                }
+                                else
+                                {
+                                    hasErrors = true;
+                                    errorMessages.Add($"Row {row}: {string.Join(", ", validationResults.Select(v => v.ErrorMessage))}");
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            hasErrors = true;
+                            errorMessages.Add($"Row {row}: {ex.Message}");
+                        }
+                    }
+
+                    if (hasErrors)
+                    {
+                        TempData["ErrorDetails"] = errorMessages;
+                        TempData["ErrorMessage"] = $"Import completed with {errorMessages.Count} errors.";
+                    }
+                    else
+                    {
+                        _context.BudgetUsages.AddRange(newRecords);
+                        await _context.SaveChangesAsync();
+                        TempData["SuccessMessage"] = $"Successfully imported {newRecords.Count} records.";
+                    }
+
+                    return RedirectToAction("Index");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Unexpected error during import: {ex.Message}";
+            return RedirectToAction("Index");
+        }
     }
 
 
