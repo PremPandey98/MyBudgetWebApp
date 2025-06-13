@@ -1,0 +1,379 @@
+@model BudgetMobApp.Models.User
+@{
+    ViewData["Title"] = "Register";
+}
+<style>
+    :root {
+        --primary-color: #4f46e5;
+        --primary-hover: #4338ca;
+        --glass-color: rgba(255, 255, 255, 0.15);
+        --text-color: #ffffff;
+        --input-bg: rgba(255, 255, 255, 0.1);
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: var(--text-color);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1512&q=80');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+    .register-container {
+        width: 100%;
+        max-width: 480px;
+        padding: 2rem;
+        margin: 1rem;
+    }
+    .glass-card {
+        background: var(--glass-color);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+        overflow: hidden;
+        padding: 2rem;
+    }
+    .register-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .register-header h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    .register-header p {
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 0;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+    .form-label {
+        width: 160px;
+        min-width: 120px;
+        margin-bottom: 0;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        text-align: left;
+        padding-right: 1rem;
+    }
+    .form-control {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        background: var(--input-bg);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        background: rgba(255, 255, 255, 0.15);
+    }
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .btn-primary {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+    .alert {
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1rem;
+    }
+    .text-danger {
+        color: #fca5a5 !important;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    .footer-links {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .footer-links a:hover {
+        color: white;
+        text-decoration: underline;
+    }
+    @@media (max-width: 576px) {
+        .register-container {
+            padding: 1rem;
+        }
+        .glass-card {
+            padding: 1.5rem;
+        }
+        .form-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .form-label {
+            width: 100%;
+            padding-right: 0;
+            margin-bottom: 0.5rem;
+        }
+    }
+</style>
+<div class="register-container">
+    <div class="glass-card">
+        <div class="register-header">
+            <h3>Create Account</h3>
+            <p>Register for BudgetWise</p>
+        </div>
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+        }
+        <form asp-action="Register" method="post">
+    <div class="form-group">
+        <label asp-for="Name" class="form-label">Name</label>
+        <div style="flex:1;">
+            <input asp-for="Name" class="form-control" placeholder="Enter your name" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Username" class="form-label">Username</label>
+        <div style="flex:1;">
+            <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+            <span asp-validation-for="Username" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password" class="form-label">Password</label>
+        <div style="flex:1;">
+            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Email" class="form-label">Email</label>
+        <div style="flex:1;">
+            <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+        <div style="flex:1;">
+            <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number" />
+            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="AccountType" class="form-label">Account Type</label>
+        <div style="flex:1;">
+            <select asp-for="AccountType" class="form-control" id="accountTypeSelect">
+                <option value="Personal">Personal</option>
+                <option value="Group">Group</option>
+            </select>
+            <span asp-validation-for="AccountType" class="text-danger"></span>
+        </div>
+    </div>
+    <div id="groupOptions" style="display:none;">
+        <div class="form-group" style="flex-direction:column;align-items:stretch;">
+            <label class="form-label" style="margin-bottom:0.5rem;">Group Option</label>
+            <div class="toggle-row">
+                <span id="toggleLabelExisting" class="toggle-label toggle-label-left toggle-label-active">Join Existing Group</span>
+                <input id="groupToggle" type="checkbox" style="display:none;" />
+                <label class="switch" for="groupToggle">
+                  <svg viewBox="0 0 212.4992 84.4688" overflow="visible">
+                    <path
+                      pathLength="360"
+                      fill="none"
+                      stroke="currentColor"
+                      d="M 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 A 42.24 42.24 90 0 0 84.4992 42.2496 A 42.24 42.24 90 0 0 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 L 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 A 42.24 42.24 90 0 0 128 42.2496 A 42.24 42.24 90 0 0 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 L 42.2496 0"
+                    ></path>
+                  </svg>
+                </label>
+                <span id="toggleLabelNew" class="toggle-label toggle-label-right">Create New Group</span>
+            </div>
+            <input type="hidden" name="GroupAction" id="GroupActionInput" value="existing" />
+        </div>
+        <div id="existingGroupDiv">
+            <div class="form-group">
+                <label asp-for="GroupId" class="form-label">Select Group</label>
+                <div style="flex:1;">
+                    <select asp-for="GroupId" class="form-control">
+                        <option value="">-- Select Group --</option>
+                        @if (ViewBag.Groups != null)
+                        {
+                            foreach (var group in ViewBag.Groups)
+                            {
+                                <option value="@group.Id">@group.GroupName (@group.GroupCode)</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="GroupId" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="GroupCodeInput" class="form-label">Enter Group Code</label>
+                <div style="flex:1;">
+                    <input type="password" name="GroupCodeInput" class="form-control" placeholder="Enter group code" />
+                </div>
+            </div>
+        </div>
+        <div id="newGroupDiv" style="display:none;">
+            <div class="form-group">
+                <label for="NewGroupName" class="form-label">Group Name</label>
+                <div style="flex:1;">
+                    <input type="text" name="NewGroupName" class="form-control" placeholder="Enter new group name" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="NewGroupCode" class="form-label">Group Code</label>
+                <div style="flex:1;">
+                    <input type="password" name="NewGroupCode" class="form-control" placeholder="Enter new group code" />
+                </div>
+            </div>
+        </div>
+    </div>
+<style>
+    /* Toggle Switch and Option Box Styles */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        justify-content: center;
+        margin-bottom: 0.7rem;
+    }
+    /* Uiverse.io SVG Toggle Switch Styles */
+    .switch {
+      --a: 0.5s ease-out;
+      cursor: pointer;
+      position: relative;
+      display: inline-flex;
+      height: 2em;
+      border-radius: 2em;
+      box-shadow: 0 0 0 0.66em #aaa;
+      aspect-ratio: 212.4992/84.4688;
+      background-color: #aaa;
+      margin: 0 10px;
+      align-items: center;
+      justify-content: center;
+    }
+    .switch svg {
+      height: 100%;
+    }
+    .switch svg path {
+      color: #fff;
+      stroke-width: 16;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 136 224;
+      transition:
+        all var(--a),
+        0s transform;
+      transform-origin: center;
+    }
+    #groupToggle:checked ~ .switch svg path {
+      stroke-dashoffset: 180;
+      transform: scaleY(-1);
+    }
+    .toggle-label {
+        min-width: 110px;
+        padding: 0.35rem 0.7rem;
+        border-radius: 7px;
+        font-weight: 500;
+        font-size: 1.04rem;
+        text-align: center;
+        background: transparent;
+        color: #222;
+        transition: background 0.2s, color 0.2s, font-weight 0.2s;
+        user-select: none;
+        border: 1.5px solid transparent;
+    }
+    .toggle-label-active {
+        background: rgba(255,255,255,0.18);
+        color: var(--primary-color);
+        font-weight: 700;
+        border: 1.5px solid var(--primary-color);
+        box-shadow: 0 2px 8px #4f46e51a;
+    }
+</style>
+    <button type="submit" class="btn btn-primary">Register</button>
+    <div class="footer-links">
+        <a asp-action="Login">Already have an account? Login</a>
+    </div>
+</form>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var accountTypeSelect = document.getElementById('accountTypeSelect');
+        var groupOptions = document.getElementById('groupOptions');
+        var existingGroupDiv = document.getElementById('existingGroupDiv');
+        var newGroupDiv = document.getElementById('newGroupDiv');
+        var groupToggle = document.getElementById('groupToggle');
+        var groupActionInput = document.getElementById('GroupActionInput');
+        var toggleLabelExisting = document.getElementById('toggleLabelExisting');
+        var toggleLabelNew = document.getElementById('toggleLabelNew');
+        function toggleGroupFields() {
+            if (accountTypeSelect.value === 'Group') {
+                groupOptions.style.display = '';
+                if (!groupToggle.checked) {
+                    existingGroupDiv.style.display = '';
+                    newGroupDiv.style.display = 'none';
+                    groupActionInput.value = 'existing';
+                    toggleLabelExisting.classList.add('toggle-label-active');
+                    toggleLabelNew.classList.remove('toggle-label-active');
+                } else {
+                    existingGroupDiv.style.display = 'none';
+                    newGroupDiv.style.display = '';
+                    groupActionInput.value = 'new';
+                    toggleLabelExisting.classList.remove('toggle-label-active');
+                    toggleLabelNew.classList.add('toggle-label-active');
+                }
+            } else {
+                groupOptions.style.display = 'none';
+            }
+        }
+        accountTypeSelect.addEventListener('change', toggleGroupFields);
+        groupToggle.addEventListener('change', toggleGroupFields);
+        toggleGroupFields();
+    });
+</script>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
