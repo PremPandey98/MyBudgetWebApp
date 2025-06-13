@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Data;
 
@@ -11,9 +12,11 @@ using WebApplication1.Data;
 namespace BudgetMobApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250613055533_AddUserTable")]
+    partial class AddUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,25 +24,6 @@ namespace BudgetMobApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("BudgetMobApp.Models.Group", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("GroupCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GroupName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Groups");
-                });
 
             modelBuilder.Entity("BudgetMobApp.Models.User", b =>
                 {
@@ -49,22 +33,13 @@ namespace BudgetMobApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AccountType")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("RememberMe")
@@ -74,8 +49,6 @@ namespace BudgetMobApp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
 
                     b.ToTable("Users");
                 });
@@ -98,17 +71,11 @@ namespace BudgetMobApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
+                    // Removed UserId property
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
+                    // Removed UserId index
 
                     b.ToTable("BudgetDeposits");
                 });
@@ -127,20 +94,11 @@ namespace BudgetMobApp.Migrations
                     b.Property<DateTime>("DateUsed")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UsageDescription")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("BudgetUsages");
                 });
@@ -182,49 +140,7 @@ namespace BudgetMobApp.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("BudgetMobApp.Models.User", b =>
-                {
-                    b.HasOne("BudgetMobApp.Models.Group", "Group")
-                        .WithMany("Users")
-                        .HasForeignKey("GroupId");
-
-                    b.Navigation("Group");
-                });
-
-            modelBuilder.Entity("WebApplication1.Models.BudgetDeposit", b =>
-                {
-                    b.HasOne("BudgetMobApp.Models.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId");
-
-                    b.HasOne("BudgetMobApp.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WebApplication1.Models.BudgetUsage", b =>
-                {
-                    b.HasOne("BudgetMobApp.Models.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId");
-
-                    b.HasOne("BudgetMobApp.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BudgetMobApp.Models.Group", b =>
-                {
-                    b.Navigation("Users");
-                });
+            // Removed BudgetDeposit-User navigation and foreign key
 #pragma warning restore 612, 618
         }
     }

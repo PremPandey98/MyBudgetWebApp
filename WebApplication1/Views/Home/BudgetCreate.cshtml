@@ -32,12 +32,12 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group">
                     <label asp-for="DepositAmount" class="control-label"></label>
-                    <input asp-for="DepositAmount" class="form-control" />
+                    <input asp-for="DepositAmount" class="form-control" value="" autocomplete="off" />
                     <span asp-validation-for="DepositAmount" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label asp-for="DepositedBy" class="control-label"></label>
-                    <input asp-for="DepositedBy" class="form-control" />
+                    <input asp-for="DepositedBy" class="form-control" value="@Model?.DepositedBy" readonly />
                     <span asp-validation-for="DepositedBy" class="text-danger"></span>
                 </div>
                 <div class="form-group">
