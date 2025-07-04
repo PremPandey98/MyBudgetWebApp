@@ -1,5 +1,4 @@
-﻿        
-using BudgetMobApp.Models;
+﻿using BudgetMobApp.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -162,11 +161,14 @@ namespace BudgetMobApp.Controllers
                 TempData["ResetEmail"] = email;
 
                 // Send OTP via Twilio
-                var smsService = new BudgetMobApp.Services.SmsService(this.HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration);
-                smsService.SendSms(new List<string> { user.PhoneNumber }, $"Your BudgetApp password reset OTP is: {otp}");
+                //var smsService = new BudgetMobApp.Services.SmsService(this.HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration);
+                //smsService.SendSms(new List<string> { user.PhoneNumber }, $"Your BudgetApp password reset OTP is: {otp}");
 
-                TempData["SuccessMessage"] = "An OTP has been sent to your registered mobile number.";
-                return RedirectToAction("ChangePasswordWithOtp");
+
+                //TempData["SuccessMessage"] = "An OTP has been sent to your registered mobile number.";
+                TempData["SuccessMessage"] = "Forget password not working at this time.try later.";
+                //return RedirectToAction("ChangePasswordWithOtp");
+                return View();
             }
             else
             {
@@ -214,6 +216,33 @@ namespace BudgetMobApp.Controllers
             _context.SaveChanges();
             TempData["SuccessMessage"] = "Password changed successfully. Please log in.";
             return RedirectToAction("Login");
+        }
+
+
+        [HttpGet]
+        public IActionResult AdminLogin()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AdminLogin(string username, string password)
+        {
+            // Static admin credentials
+            if (username == "admin" && password == "akshayprem69")
+            {
+                HttpContext.Session.SetString("IsAdmin", "true");
+                return RedirectToAction("AdminDashboard","Home");
+            }
+            TempData["ErrorMessage"] = "Invalid admin credentials.";
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult ChangePasswordFromProfile()
+        {
+            ViewBag.ShowCurrentPassword = true;
+            return View("ChangePasswordWithOtp");
         }
 
 

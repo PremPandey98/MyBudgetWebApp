@@ -198,8 +198,8 @@
 
             <div class="form-group" style="display:flex;align-items:center;gap:18px;">
                 <label asp-for="Password" class="form-label" style="margin-bottom:0;">Password</label>
-                <div style="flex:1;">
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
+                <div style="flex:1; position:relative;">
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="loginPasswordInput" />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
             </div>
@@ -215,11 +215,28 @@
         </form>
 
         <div class="footer-links">
-            <a asp-action="ForgotPassword" asp-controller="Login">Forgot password?</a> • <a asp-action="Register" asp-controller="Login">Create account</a>
+            <a asp-action="ForgotPassword" asp-controller="Login">Forgot password?</a> •
+            <a asp-action="Register" asp-controller="Login">Create account</a> •
+            <a asp-action="AdminLogin" asp-controller="Login">Admin Login</a>
         </div>
     </div>
 </div>
 
 @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleLoginPassword() {
+            var input = document.getElementById('loginPasswordInput');
+            var icon = document.getElementById('loginPasswordToggle');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 }

@@ -12,6 +12,7 @@ using WebApplication1.Data;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 using System.Drawing;
 using WebApplication1.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace BudgetMobApp.Controllers
 {
@@ -94,10 +95,11 @@ public class HomeController : Controller
         // Pre-populate DepositedBy with current user's name or username
         var username = User.Identity?.Name;
         var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        var depositedBy = user != null ? (!string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "Unknown")) : "Unknown";
         var model = new BudgetDeposit
         {
             DepositAmount = default(decimal), // This will keep the field blank in the form
-            DepositedBy = user != null ? user.Name ?? user.Username ?? "" : ""
+            DepositedBy = depositedBy
         };
         return View(model);
     }
@@ -111,12 +113,10 @@ public class HomeController : Controller
                 // Set UserId, GroupId, and DepositedBy from logged-in user
                 var username = User.Identity?.Name;
                 var user = _context.Users.FirstOrDefault(u => u.Username == username);
-                if (user != null)
-                {
-                    _BudgetDeposit.UserId = user.Id;
-                    _BudgetDeposit.GroupId = user.GroupId;
-                    _BudgetDeposit.DepositedBy = user.Name ?? user.Username ?? "";
-                }
+                var depositedBy = user != null ? (!string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "Unknown")) : "Unknown";
+                _BudgetDeposit.UserId = user?.Id;
+                _BudgetDeposit.GroupId = user?.GroupId;
+                _BudgetDeposit.DepositedBy = depositedBy;
 
                 _context.BudgetDeposits.Add(_BudgetDeposit);
                 _context.SaveChanges();
@@ -194,6 +194,25 @@ public class HomeController : Controller
     }
     public IActionResult BudgetUsageCreate()
     {
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        if (user != null && user.AccountType == BudgetMobApp.Models.AccountType.Group && user.GroupId != null)
+        {
+            ViewBag.AccountType = "Group";
+            ViewBag.GroupUsers = _context.Users
+                .Where(u => u.GroupId == user.GroupId
+                    && !string.IsNullOrEmpty(u.Name)
+                    && !string.IsNullOrEmpty(u.Username)
+                    && !string.IsNullOrEmpty(u.Email)
+                    && !string.IsNullOrEmpty(u.Password))
+                .ToList();
+            ViewBag.CurrentUserName = !string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "");
+        }
+        else if (user != null)
+        {
+            ViewBag.AccountType = "Personal";
+            ViewBag.CurrentUserName = !string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "");
+        }
         return View();
     }
     [HttpPost]
@@ -214,9 +233,9 @@ public class HomeController : Controller
             _context.SaveChanges();
 
             //var smsService = new SmsService(_configuration);
-            var phoneNumbers = new List<string> { "9337713798", "8459408758" };
-            string message = $"New expense added: {_BudgetUsage.UsageDescription}, Amount: {_BudgetUsage.AmountUsed} ";
-            _smsService.SendSms(phoneNumbers, message);
+            //var phoneNumbers = new List<string> { "9337713798", "8459408758" };
+            //string message = $"New expense added: {_BudgetUsage.UsageDescription}, Amount: {_BudgetUsage.AmountUsed} ";
+            //_smsService.SendSms(phoneNumbers, message);
 
             // Set success message
             TempData["SuccessMessage"] = "Expense Added successfully!";
@@ -256,9 +275,9 @@ public class HomeController : Controller
             _context.SaveChanges();
 
             //var smsService = new SmsService(_configuration);
-            var phoneNumbers = new List<string> { "9337713798", "8459408758" };
-            string message = $"Expense Deleted: {budget.UsageDescription}, Amount: {budget.AmountUsed} ";
-            _smsService.SendSms(phoneNumbers, message);
+            //var phoneNumbers = new List<string> { "9337713798", "8459408758" };
+            //string message = $"Expense Deleted: {budget.UsageDescription}, Amount: {budget.AmountUsed} ";
+            //_smsService.SendSms(phoneNumbers, message);
 
             TempData["SuccessMessage"] = "Expense deleted successfully."; // Success message
         }
@@ -609,6 +628,54 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AdminLogin()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    public IActionResult AdminLogin(string username, string password)
+    {
+        if (username == "admin" && password == "admin")
+        {
+            // Set session variable to indicate admin is logged in
+            HttpContext.Session.SetString("IsAdmin", "true");
+            return RedirectToAction("AdminDashboard");
+        }
+
+        ViewBag.ErrorMessage = "Invalid admin credentials.";
+        return View();
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AdminDashboard()
+    {
+        var isAdmin = HttpContext.Session.GetString("IsAdmin");
+        if (isAdmin != "true")
+        {
+            return RedirectToAction("AdminLogin");
+        }
+        ViewBag.Users = _context.Users
+            .Where(u => !string.IsNullOrEmpty(u.Name) && !string.IsNullOrEmpty(u.Username) && !string.IsNullOrEmpty(u.Email) && !string.IsNullOrEmpty(u.Password))
+            .ToList();
+        ViewBag.Groups = _context.Groups
+            .Where(g => !string.IsNullOrEmpty(g.GroupName) && !string.IsNullOrEmpty(g.GroupCode))
+            .ToList();
+        ViewBag.BudgetDeposits = _context.BudgetDeposits
+            .Where(d => d.DepositAmount > 0 && !string.IsNullOrEmpty(d.DepositedBy))
+            .ToList();
+        ViewBag.BudgetUsages = _context.BudgetUsages
+            .Where(u => u.AmountUsed > 0 && !string.IsNullOrEmpty(u.UsageDescription) && !string.IsNullOrEmpty(u.SpendBy))
+            .ToList();
+        return View("~/Views/Admin/Dashboard.cshtml");
     }
 }
 }

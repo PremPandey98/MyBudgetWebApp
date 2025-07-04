@@ -1,0 +1,161 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var users = ViewBag.Users as List<BudgetMobApp.Models.User>;
+    var groups = ViewBag.Groups as List<BudgetMobApp.Models.Group>;
+    var deposits = ViewBag.BudgetDeposits as List<WebApplication1.Models.BudgetDeposit>;
+    var usages = ViewBag.BudgetUsages as List<WebApplication1.Models.BudgetUsage>;
+}
+<style>
+    body {
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+        color: #fff;
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    .admin-dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: rgba(255,255,255,0.10);
+        border-radius: 18px;
+        box-shadow: 0 8px 32px 0 rgba(0,0,0,0.36);
+        backdrop-filter: blur(12px);
+    }
+    .admin-title {
+        text-align: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: #fff;
+    }
+    .admin-section {
+        margin-bottom: 2.5rem;
+    }
+    .admin-section h3 {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #e0e7ff;
+    }
+    .table {
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .table th, .table td {
+        background: transparent;
+        color: #fff;
+        vertical-align: middle;
+    }
+    .table thead th {
+        background: rgba(79,70,229,0.18);
+        color: #c7d2fe;
+        font-weight: 700;
+    }
+    .table-striped > tbody > tr:nth-of-type(odd) {
+        background: rgba(255,255,255,0.04);
+    }
+    @@media (max-width: 900px) {
+        .admin-dashboard-container { padding: 1rem; }
+        .table { font-size: 0.95rem; }
+    }
+    @@media (max-width: 600px) {
+        .admin-dashboard-container { padding: 0.5rem; }
+        .admin-title { font-size: 1.3rem; }
+        .table { font-size: 0.85rem; }
+    }
+</style>
+<div class="admin-dashboard-container">
+    <div class="admin-title">Admin Dashboard</div>
+    <div class="admin-section">
+        <h3>Users</h3>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead><tr><th>ID</th><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>AccountType</th><th>GroupId</th></tr></thead>
+                <tbody>
+                @if (users != null)
+                {
+                    foreach (var u in users)
+                    {
+                        <tr>
+                            <td>@u.Id</td><td>@(u.Name ?? "")</td><td>@(u.Username ?? "")</td><td>@(u.Email ?? "")</td><td>@(u.PhoneNumber ?? "")</td><td>@(u.AccountType.ToString())</td><td>@(u.GroupId?.ToString() ?? "")</td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="admin-section">
+        <h3>Groups</h3>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead><tr><th>ID</th><th>Name</th><th>Code</th></tr></thead>
+                <tbody>
+                @if (groups != null)
+                {
+                    foreach (var g in groups)
+                    {
+                        <tr><td>@g.Id</td><td>@(g.GroupName ?? "")</td><td>@(g.GroupCode ?? "")</td></tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="admin-section">
+        <h3>Deposits</h3>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead><tr><th>ID</th><th>Amount</th><th>By</th><th>Date</th><th>UserId</th><th>GroupId</th></tr></thead>
+                <tbody>
+                @if (deposits != null)
+                {
+                    foreach (var d in deposits)
+                    {
+                        <tr><td>@d.Id</td><td>@d.DepositAmount</td><td>@(d.DepositedBy ?? "")</td><td>@d.DepositDate</td><td>@(d.UserId?.ToString() ?? "")</td><td>@(d.GroupId?.ToString() ?? "")</td></tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="admin-section">
+        <h3>Usages</h3>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead><tr><th>ID</th><th>Amount</th><th>Description</th><th>By</th><th>Date</th><th>UserId</th><th>GroupId</th></tr></thead>
+                <tbody>
+                @if (usages != null)
+                {
+                    foreach (var u in usages)
+                    {
+                        <tr><td>@u.Id</td><td>@u.AmountUsed</td><td>@(u.UsageDescription ?? "")</td><td>@(u.SpendBy ?? "")</td><td>@u.DateUsed</td><td>@(u.UserId?.ToString() ?? "")</td><td>@(u.GroupId?.ToString() ?? "")</td></tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="admin-section">
+        <h3>Budget Usage Import/Export</h3>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <a asp-action="ExportBudgetUsageToExcel" class="btn btn-success">
+                <i class="fas fa-file-excel me-2"></i> Export To Excel
+            </a>
+            <a href="~/templates/BudgetUsage_ImportTemplate.xlsx" class="btn btn-info">
+                <i class="fas fa-download me-2"></i> Download Sample Template
+            </a>
+        </div>
+        <form method="post" enctype="multipart/form-data" asp-action="ImportBudgetUsage" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label" style="color:white">Select Excel File</label>
+                <input type="file" name="file" class="form-control" required />
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Import</button>
+            </div>
+        </form>
+    </div>
+</div>

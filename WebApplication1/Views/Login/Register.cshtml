@@ -129,6 +129,49 @@
         color: white;
         text-decoration: underline;
     }
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        justify-content: center;
+        margin-bottom: 0.7rem;
+        flex-wrap: wrap;
+    }
+    .toggle-label {
+        min-width: 90px;
+        padding: 0.25rem 0.5rem;
+        border-radius: 7px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        text-align: center;
+        background: transparent;
+        color: #222;
+        transition: background 0.2s, color 0.2s, font-weight 0.2s;
+        user-select: none;
+        border: 1.5px solid transparent;
+    }
+    .option-box {
+        min-width: 120px;
+        padding: 0.7rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-align: center;
+        background: rgba(255,255,255,0.10);
+        color: #222;
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
+        margin: 0 0.3rem;
+        box-shadow: 0 2px 8px #4f46e51a;
+        user-select: none;
+    }
+    .option-box-active {
+        background: rgba(255,255,255,0.18);
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 4px 16px #4f46e533;
+    }
     @@media (max-width: 576px) {
         .register-container {
             padding: 1rem;
@@ -144,6 +187,24 @@
             width: 100%;
             padding-right: 0;
             margin-bottom: 0.5rem;
+        }
+        .toggle-row {
+            gap: 0.5rem;
+        }
+        .toggle-label {
+            min-width: 70px;
+            font-size: 0.85rem;
+            padding: 0.18rem 0.3rem;
+        }
+        .option-box {
+            min-width: 90px;
+            font-size: 0.92rem;
+            padding: 0.5rem 0.5rem;
+            margin: 0 0.15rem;
+        }
+        .toggle-row {
+            flex-direction: row;
+            gap: 0.3rem;
         }
     }
 </style>
@@ -165,7 +226,7 @@
     <div class="form-group">
         <label asp-for="Name" class="form-label">Name</label>
         <div style="flex:1;">
-            <input asp-for="Name" class="form-control" placeholder="Enter your name" />
+            <input asp-for="Name" class="form-control" placeholder="Enter your name" oninput="this.value=this.value.replace(/[^a-zA-Z ]/g,'')" />
             <span asp-validation-for="Name" class="text-danger"></span>
         </div>
     </div>
@@ -193,7 +254,7 @@
     <div class="form-group">
         <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
         <div style="flex:1;">
-            <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number" />
+            <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" />
             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
         </div>
     </div>
@@ -210,20 +271,9 @@
     <div id="groupOptions" style="display:none;">
         <div class="form-group" style="flex-direction:column;align-items:stretch;">
             <label class="form-label" style="margin-bottom:0.5rem;">Group Option</label>
-            <div class="toggle-row">
-                <span id="toggleLabelExisting" class="toggle-label toggle-label-left toggle-label-active">Join Existing Group</span>
-                <input id="groupToggle" type="checkbox" style="display:none;" />
-                <label class="switch" for="groupToggle">
-                  <svg viewBox="0 0 212.4992 84.4688" overflow="visible">
-                    <path
-                      pathLength="360"
-                      fill="none"
-                      stroke="currentColor"
-                      d="M 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 A 42.24 42.24 90 0 0 84.4992 42.2496 A 42.24 42.24 90 0 0 42.2496 0 A 42.24 42.24 90 0 0 0 42.2496 A 42.24 42.24 90 0 0 42.2496 84.4688 L 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 A 42.24 42.24 90 0 0 128 42.2496 A 42.24 42.24 90 0 0 170.2496 84.4688 A 42.24 42.24 90 0 0 212.4992 42.2496 A 42.24 42.24 90 0 0 170.2496 0 L 42.2496 0"
-                    ></path>
-                  </svg>
-                </label>
-                <span id="toggleLabelNew" class="toggle-label toggle-label-right">Create New Group</span>
+            <div class="toggle-row" id="groupOptionBoxes">
+                <div id="boxExisting" class="option-box option-box-active">Join Existing Group</div>
+                <div id="boxNew" class="option-box">Create New Group</div>
             </div>
             <input type="hidden" name="GroupAction" id="GroupActionInput" value="existing" />
         </div>
@@ -237,7 +287,7 @@
                         {
                             foreach (var group in ViewBag.Groups)
                             {
-                                <option value="@group.Id">@group.GroupName (@group.GroupCode)</option>
+                                <option value="@group.Id">@group.GroupName</option>
                             }
                         }
                     </select>
@@ -266,69 +316,6 @@
             </div>
         </div>
     </div>
-<style>
-    /* Toggle Switch and Option Box Styles */
-    .toggle-row {
-        display: flex;
-        align-items: center;
-        gap: 1.2rem;
-        justify-content: center;
-        margin-bottom: 0.7rem;
-    }
-    /* Uiverse.io SVG Toggle Switch Styles */
-    .switch {
-      --a: 0.5s ease-out;
-      cursor: pointer;
-      position: relative;
-      display: inline-flex;
-      height: 2em;
-      border-radius: 2em;
-      box-shadow: 0 0 0 0.66em #aaa;
-      aspect-ratio: 212.4992/84.4688;
-      background-color: #aaa;
-      margin: 0 10px;
-      align-items: center;
-      justify-content: center;
-    }
-    .switch svg {
-      height: 100%;
-    }
-    .switch svg path {
-      color: #fff;
-      stroke-width: 16;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 136 224;
-      transition:
-        all var(--a),
-        0s transform;
-      transform-origin: center;
-    }
-    #groupToggle:checked ~ .switch svg path {
-      stroke-dashoffset: 180;
-      transform: scaleY(-1);
-    }
-    .toggle-label {
-        min-width: 110px;
-        padding: 0.35rem 0.7rem;
-        border-radius: 7px;
-        font-weight: 500;
-        font-size: 1.04rem;
-        text-align: center;
-        background: transparent;
-        color: #222;
-        transition: background 0.2s, color 0.2s, font-weight 0.2s;
-        user-select: none;
-        border: 1.5px solid transparent;
-    }
-    .toggle-label-active {
-        background: rgba(255,255,255,0.18);
-        color: var(--primary-color);
-        font-weight: 700;
-        border: 1.5px solid var(--primary-color);
-        box-shadow: 0 2px 8px #4f46e51a;
-    }
-</style>
     <button type="submit" class="btn btn-primary">Register</button>
     <div class="footer-links">
         <a asp-action="Login">Already have an account? Login</a>
@@ -340,32 +327,36 @@
         var groupOptions = document.getElementById('groupOptions');
         var existingGroupDiv = document.getElementById('existingGroupDiv');
         var newGroupDiv = document.getElementById('newGroupDiv');
-        var groupToggle = document.getElementById('groupToggle');
         var groupActionInput = document.getElementById('GroupActionInput');
-        var toggleLabelExisting = document.getElementById('toggleLabelExisting');
-        var toggleLabelNew = document.getElementById('toggleLabelNew');
+        var boxExisting = document.getElementById('boxExisting');
+        var boxNew = document.getElementById('boxNew');
         function toggleGroupFields() {
             if (accountTypeSelect.value === 'Group') {
                 groupOptions.style.display = '';
-                if (!groupToggle.checked) {
+                if (groupActionInput.value === 'existing') {
                     existingGroupDiv.style.display = '';
                     newGroupDiv.style.display = 'none';
-                    groupActionInput.value = 'existing';
-                    toggleLabelExisting.classList.add('toggle-label-active');
-                    toggleLabelNew.classList.remove('toggle-label-active');
+                    boxExisting.classList.add('option-box-active');
+                    boxNew.classList.remove('option-box-active');
                 } else {
                     existingGroupDiv.style.display = 'none';
                     newGroupDiv.style.display = '';
-                    groupActionInput.value = 'new';
-                    toggleLabelExisting.classList.remove('toggle-label-active');
-                    toggleLabelNew.classList.add('toggle-label-active');
+                    boxExisting.classList.remove('option-box-active');
+                    boxNew.classList.add('option-box-active');
                 }
             } else {
                 groupOptions.style.display = 'none';
             }
         }
         accountTypeSelect.addEventListener('change', toggleGroupFields);
-        groupToggle.addEventListener('change', toggleGroupFields);
+        boxExisting.addEventListener('click', function() {
+            groupActionInput.value = 'existing';
+            toggleGroupFields();
+        });
+        boxNew.addEventListener('click', function() {
+            groupActionInput.value = 'new';
+            toggleGroupFields();
+        });
         toggleGroupFields();
     });
 </script>
@@ -376,4 +367,8 @@
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

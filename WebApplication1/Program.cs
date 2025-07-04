@@ -17,6 +17,8 @@ builder.Services.AddAuthentication("MyCookieAuth")
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddSession();
+
 builder.Services.AddSingleton<SmsService>();
 
 
@@ -34,7 +36,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
