@@ -50,6 +50,28 @@
                     <span asp-validation-for="UsageDescription" class="text-danger"></span>
                 </div>
                 <div class="form-group">
+                    <label asp-for="SpendBy" class="control-label">Spend By</label>
+                    <select asp-for="SpendBy" class="form-control" id="SpendBySelect">
+                        @if (ViewBag.AccountType == "Group")
+                        {
+                            if (ViewBag.GroupUsers != null)
+                            {
+                                foreach (var user in ViewBag.GroupUsers)
+                                {
+                                    var displayName = !string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "");
+                                    <option value="@displayName">@displayName</option>
+                                }
+                            }
+                            <option value="Team">Team</option>
+                        }
+                        else if (ViewBag.AccountType == "Personal")
+                        {
+                            <option value="@ViewBag.CurrentUserName">@ViewBag.CurrentUserName</option>
+                        }
+                    </select>
+                    <span asp-validation-for="SpendBy" class="text-danger"></span>
+                </div>
+                <div class="form-group">
                     @{
                         var istTimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
                         var istNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, istTimeZone);

@@ -188,32 +188,55 @@
         }
 
         <form asp-action="Login" method="post">
-            <div class="form-group">
-                <label asp-for="Username" class="form-label">Username</label>
-                <input asp-for="Username" class="form-control" placeholder="Enter your username" />
-                <span asp-validation-for="Username" class="text-danger"></span>
+            <div class="form-group" style="display:flex;align-items:center;gap:18px;">
+                <label asp-for="Username" class="form-label" style="margin-bottom:0;">Username</label>
+                <div style="flex:1;">
+                    <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label asp-for="Password" class="form-label">Password</label>
-                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+            <div class="form-group" style="display:flex;align-items:center;gap:18px;">
+                <label asp-for="Password" class="form-label" style="margin-bottom:0;">Password</label>
+                <div style="flex:1; position:relative;">
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="loginPasswordInput" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
             </div>
 
-            <div class="form-check">
-                <input asp-for="RememberMe" class="form-check-input" />
-                <label asp-for="RememberMe" class="form-check-label">Remember Me</label>
+            <div class="form-group" style="display:flex;align-items:center;gap:18px;">
+                <label asp-for="RememberMe" class="form-label" style="margin-bottom:0;">Remember Me</label>
+                <div style="flex:1;display:flex;align-items:center;">
+                    <input asp-for="RememberMe" class="form-check-input" style="margin-left:0;" />
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">Login</button>
         </form>
 
         <div class="footer-links">
-            <a href="#">Forgot password?</a> • <a href="#">Create account</a>
+            <a asp-action="ForgotPassword" asp-controller="Login">Forgot password?</a> •
+            <a asp-action="Register" asp-controller="Login">Create account</a> •
+            <a asp-action="AdminLogin" asp-controller="Login">Admin Login</a>
         </div>
     </div>
 </div>
 
 @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleLoginPassword() {
+            var input = document.getElementById('loginPasswordInput');
+            var icon = document.getElementById('loginPasswordToggle');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 }

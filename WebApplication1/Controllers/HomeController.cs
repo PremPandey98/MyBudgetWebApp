@@ -12,22 +12,56 @@ using WebApplication1.Data;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 using System.Drawing;
 using WebApplication1.Models;
+using Microsoft.AspNetCore.Http;
 
-namespace BudgetMobApp.Controllers;
+namespace BudgetMobApp.Controllers
+{
 
 [Authorize]
 public class HomeController : Controller
 {
+    [HttpGet]
+    public IActionResult Profile()
+    {
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "User not found.";
+            return RedirectToAction("Index");
+        }
+        return View(user);
+    }
+
+    [HttpPost]
+    public IActionResult Profile(BudgetMobApp.Models.User model)
+    {
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "User not found.";
+            return RedirectToAction("Index");
+        }
+        // Allow updating name, email, and phone number
+        user.Name = model.Name;
+        user.Email = model.Email;
+        user.PhoneNumber = model.PhoneNumber;
+        _context.SaveChanges();
+        TempData["SuccessMessage"] = "Profile updated successfully.";
+        return RedirectToAction("Profile");
+    }
     private readonly ILogger<HomeController> _logger;
     private readonly AppDbContext _context;
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration? _configuration;
     private readonly SmsService _smsService;
 
-    public HomeController(ILogger<HomeController> logger, AppDbContext context, SmsService smsService)
+    public HomeController(ILogger<HomeController> logger, AppDbContext context, SmsService smsService, IConfiguration? configuration = null)
     {
         _logger = logger;
         _context = context;
         _smsService = smsService;
+        _configuration = configuration;
     }
     [AllowAnonymous]
     public IActionResult Index()
@@ -36,12 +70,38 @@ public class HomeController : Controller
     }
     public IActionResult Budget()
     {
-        var budget = _context.BudgetDeposits.ToList(); // Assuming you will use _context here for some logic
+        // Filter deposits for the current user or group
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        List<BudgetDeposit> budget;
+        if (user != null && user.AccountType == BudgetMobApp.Models.AccountType.Group && user.GroupId != null)
+        {
+            int groupId = user.GroupId.Value;
+            budget = _context.BudgetDeposits.Where(d => d.GroupId == groupId).ToList();
+        }
+        else if (user != null)
+        {
+            int userId = user.Id;
+            budget = _context.BudgetDeposits.Where(d => d.UserId == userId).ToList();
+        }
+        else
+        {
+            budget = new List<BudgetDeposit>();
+        }
         return View(budget);
     }
     public IActionResult BudgetCreate()
     {
-        return View();
+        // Pre-populate DepositedBy with current user's name or username
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        var depositedBy = user != null ? (!string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "Unknown")) : "Unknown";
+        var model = new BudgetDeposit
+        {
+            DepositAmount = default(decimal), // This will keep the field blank in the form
+            DepositedBy = depositedBy
+        };
+        return View(model);
     }
     [HttpPost]
     public IActionResult BudgetCreate(BudgetDeposit _BudgetDeposit)
@@ -50,7 +110,13 @@ public class HomeController : Controller
         {
             try
             {
-                //_BudgetDeposit.DepositDate = DateTime.Now;
+                // Set UserId, GroupId, and DepositedBy from logged-in user
+                var username = User.Identity?.Name;
+                var user = _context.Users.FirstOrDefault(u => u.Username == username);
+                var depositedBy = user != null ? (!string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "Unknown")) : "Unknown";
+                _BudgetDeposit.UserId = user?.Id;
+                _BudgetDeposit.GroupId = user?.GroupId;
+                _BudgetDeposit.DepositedBy = depositedBy;
 
                 _context.BudgetDeposits.Add(_BudgetDeposit);
                 _context.SaveChanges();
@@ -106,11 +172,47 @@ public class HomeController : Controller
 
     public IActionResult BudgetUsage()
     {
-        var budget = _context.BudgetUsages.ToList();
+        // Filter usages for the current user or group
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        List<BudgetUsage> budget;
+        if (user != null && user.AccountType == BudgetMobApp.Models.AccountType.Group && user.GroupId != null)
+        {
+            int groupId = user.GroupId.Value;
+            budget = _context.BudgetUsages.Where(u => u.GroupId == groupId).ToList();
+        }
+        else if (user != null)
+        {
+            int userId = user.Id;
+            budget = _context.BudgetUsages.Where(u => u.UserId == userId).ToList();
+        }
+        else
+        {
+            budget = new List<BudgetUsage>();
+        }
         return View(budget);
     }
     public IActionResult BudgetUsageCreate()
     {
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
+        if (user != null && user.AccountType == BudgetMobApp.Models.AccountType.Group && user.GroupId != null)
+        {
+            ViewBag.AccountType = "Group";
+            ViewBag.GroupUsers = _context.Users
+                .Where(u => u.GroupId == user.GroupId
+                    && !string.IsNullOrEmpty(u.Name)
+                    && !string.IsNullOrEmpty(u.Username)
+                    && !string.IsNullOrEmpty(u.Email)
+                    && !string.IsNullOrEmpty(u.Password))
+                .ToList();
+            ViewBag.CurrentUserName = !string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "");
+        }
+        else if (user != null)
+        {
+            ViewBag.AccountType = "Personal";
+            ViewBag.CurrentUserName = !string.IsNullOrEmpty(user.Name) ? user.Name : (!string.IsNullOrEmpty(user.Username) ? user.Username : "");
+        }
         return View();
     }
     [HttpPost]
@@ -118,13 +220,22 @@ public class HomeController : Controller
     {
         if (ModelState.IsValid)
         {
+            // Set UserId and GroupId from logged-in user
+            var username = User.Identity?.Name;
+            var user = _context.Users.FirstOrDefault(u => u.Username == username);
+            if (user != null)
+            {
+                _BudgetUsage.UserId = user.Id;
+                _BudgetUsage.GroupId = user.GroupId;
+            }
+
             _context.BudgetUsages.Add(_BudgetUsage);
             _context.SaveChanges();
 
             //var smsService = new SmsService(_configuration);
-            var phoneNumbers = new List<string> { "9337713798", "8459408758" };
-            string message = $"New expense added: {_BudgetUsage.UsageDescription}, Amount: {_BudgetUsage.AmountUsed} ";
-            _smsService.SendSms(phoneNumbers, message);
+            //var phoneNumbers = new List<string> { "9337713798", "8459408758" };
+            //string message = $"New expense added: {_BudgetUsage.UsageDescription}, Amount: {_BudgetUsage.AmountUsed} ";
+            //_smsService.SendSms(phoneNumbers, message);
 
             // Set success message
             TempData["SuccessMessage"] = "Expense Added successfully!";
@@ -164,9 +275,9 @@ public class HomeController : Controller
             _context.SaveChanges();
 
             //var smsService = new SmsService(_configuration);
-            var phoneNumbers = new List<string> { "9337713798", "8459408758" };
-            string message = $"Expense Deleted: {budget.UsageDescription}, Amount: {budget.AmountUsed} ";
-            _smsService.SendSms(phoneNumbers, message);
+            //var phoneNumbers = new List<string> { "9337713798", "8459408758" };
+            //string message = $"Expense Deleted: {budget.UsageDescription}, Amount: {budget.AmountUsed} ";
+            //_smsService.SendSms(phoneNumbers, message);
 
             TempData["SuccessMessage"] = "Expense deleted successfully."; // Success message
         }
@@ -225,18 +336,52 @@ public class HomeController : Controller
         // Set endDate to IST now if not provided
         endDate ??= istNow;
 
+
         var startDateOnly = DateOnly.FromDateTime(startDate.Value);
         var endDateOnly = DateOnly.FromDateTime(endDate.Value);
 
-        var budgetUsages = await _context.BudgetUsages
-            .Where(u => DateOnly.FromDateTime(u.DateUsed) >= startDateOnly &&
-                        DateOnly.FromDateTime(u.DateUsed) <= endDateOnly)
-            .ToListAsync();
+        // Get current user
+        var username = User.Identity?.Name;
+        var user = _context.Users.FirstOrDefault(u => u.Username == username);
 
-        var budgetDeposits = await _context.BudgetDeposits
-            .Where(d => DateOnly.FromDateTime(d.DepositDate) >= startDateOnly &&
-                        DateOnly.FromDateTime(d.DepositDate) <= endDateOnly)
-            .ToListAsync();
+        List<BudgetUsage> budgetUsages;
+        List<BudgetDeposit> budgetDeposits;
+        if (user != null && user.AccountType == BudgetMobApp.Models.AccountType.Group && user.GroupId != null)
+        {
+            // Group user: filter by GroupId
+            int groupId = user.GroupId.Value;
+            budgetUsages = await _context.BudgetUsages
+                .Where(u => u.GroupId == groupId &&
+                            DateOnly.FromDateTime(u.DateUsed) >= startDateOnly &&
+                            DateOnly.FromDateTime(u.DateUsed) <= endDateOnly)
+                .ToListAsync();
+            budgetDeposits = await _context.BudgetDeposits
+                .Where(d => d.GroupId == groupId &&
+                            DateOnly.FromDateTime(d.DepositDate) >= startDateOnly &&
+                            DateOnly.FromDateTime(d.DepositDate) <= endDateOnly)
+                .ToListAsync();
+        }
+        else if (user != null)
+        {
+            // Personal user: filter by UserId
+            int userId = user.Id;
+            budgetUsages = await _context.BudgetUsages
+                .Where(u => u.UserId == userId &&
+                            DateOnly.FromDateTime(u.DateUsed) >= startDateOnly &&
+                            DateOnly.FromDateTime(u.DateUsed) <= endDateOnly)
+                .ToListAsync();
+            budgetDeposits = await _context.BudgetDeposits
+                .Where(d => d.UserId == userId &&
+                            DateOnly.FromDateTime(d.DepositDate) >= startDateOnly &&
+                            DateOnly.FromDateTime(d.DepositDate) <= endDateOnly)
+                .ToListAsync();
+        }
+        else
+        {
+            // Not logged in or user not found: show nothing
+            budgetUsages = new List<BudgetUsage>();
+            budgetDeposits = new List<BudgetDeposit>();
+        }
 
         var model = new DashboardViewModel
         {
@@ -479,12 +624,58 @@ public class HomeController : Controller
         }
     }
 
-
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+    
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AdminLogin()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    public IActionResult AdminLogin(string username, string password)
+    {
+        if (username == "admin" && password == "admin")
+        {
+            // Set session variable to indicate admin is logged in
+            HttpContext.Session.SetString("IsAdmin", "true");
+            return RedirectToAction("AdminDashboard");
+        }
+
+        ViewBag.ErrorMessage = "Invalid admin credentials.";
+        return View();
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult AdminDashboard()
+    {
+        var isAdmin = HttpContext.Session.GetString("IsAdmin");
+        if (isAdmin != "true")
+        {
+            return RedirectToAction("AdminLogin");
+        }
+        ViewBag.Users = _context.Users
+            .Where(u => !string.IsNullOrEmpty(u.Name) && !string.IsNullOrEmpty(u.Username) && !string.IsNullOrEmpty(u.Email) && !string.IsNullOrEmpty(u.Password))
+            .ToList();
+        ViewBag.Groups = _context.Groups
+            .Where(g => !string.IsNullOrEmpty(g.GroupName) && !string.IsNullOrEmpty(g.GroupCode))
+            .ToList();
+        ViewBag.BudgetDeposits = _context.BudgetDeposits
+            .Where(d => d.DepositAmount > 0 && !string.IsNullOrEmpty(d.DepositedBy))
+            .ToList();
+        ViewBag.BudgetUsages = _context.BudgetUsages
+            .Where(u => u.AmountUsed > 0 && !string.IsNullOrEmpty(u.UsageDescription) && !string.IsNullOrEmpty(u.SpendBy))
+            .ToList();
+        return View("~/Views/Admin/Dashboard.cshtml");
+    }
+}
 }
